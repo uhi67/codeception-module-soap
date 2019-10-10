@@ -19,14 +19,18 @@ class SoapTest extends \Codeception\PHPUnit\TestCase
 
     public function _setUp()
     {
-        $this->module = new \Codeception\Module\SOAP(make_container());
+        $container = \Codeception\Util\Stub::make('Codeception\Lib\ModuleContainer');
+        $this->module = new \Codeception\Module\SOAP($container);
         $this->module->_setConfig(array(
             'schema' => 'http://www.w3.org/2001/xml.xsd',
             'endpoint' => 'http://codeception.com/api/wsdl'
         ));
-        $this->layout = \Codeception\Configuration::dataDir().'/xml/layout.xml';
+        $this->layout = \Codeception\Configuration::dataDir().'/layout.xml';
         $this->module->isFunctional = true;
         $this->module->_before(Stub::makeEmpty('\Codeception\Test\Test'));
+
+        //loading framework module creates AbstractBrowser class alias used by connector
+        $frameworkModule = new \Codeception\Module\UniversalFramework($container);
         $this->module->client = Stub::makeEmpty('\Codeception\Lib\Connector\Universal');
     }
     
