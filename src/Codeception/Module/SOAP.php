@@ -1,9 +1,7 @@
 <?php
 namespace Codeception\Module;
 
-use Codeception\Lib\Interfaces\API;
 use Codeception\Lib\Interfaces\DependsOnModule;
-use Codeception\Lib\Notification;
 use Codeception\Module as CodeceptionModule;
 use Codeception\TestInterface;
 use Codeception\Exception\ModuleException;
