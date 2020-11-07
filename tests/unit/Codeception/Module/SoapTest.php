@@ -37,7 +37,6 @@ class SoapTest extends \Codeception\PHPUnit\TestCase
     {
         $dom = new \DOMDocument();
         $dom->load($this->layout);
-        $this->assertEqualXMLStructure($this->module->xmlRequest->documentElement, $dom->documentElement);
         $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
     }
     
@@ -50,7 +49,7 @@ class SoapTest extends \Codeception\PHPUnit\TestCase
         $header->appendChild($dom->createElement('username', 'davert'));
         $header->appendChild($dom->createElement('password', '123456'));
         $dom->documentElement->getElementsByTagName('Header')->item(0)->appendChild($header);
-        $this->assertEqualXMLStructure($this->module->xmlRequest->documentElement, $dom->documentElement);
+        $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
     }
 
     public function testBuildRequest()
@@ -65,7 +64,7 @@ class SoapTest extends \Codeception\PHPUnit\TestCase
         $request = $dom->createElement('ns:KillHumans');
         $request->appendChild($body);
         $dom->documentElement->getElementsByTagName('Body')->item(0)->appendChild($request);
-        $this->assertEqualXMLStructure($this->module->xmlRequest->documentElement, $dom->documentElement);
+        $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
     }
 
     public function testBuildRequestWithDomNode()
@@ -80,7 +79,7 @@ class SoapTest extends \Codeception\PHPUnit\TestCase
         $dom->documentElement->getElementsByTagName('Body')->item(0)->appendChild($request);
 
         $this->module->sendSoapRequest('KillHumans', $body);
-        $this->assertEqualXMLStructure($this->module->xmlRequest->documentElement, $dom->documentElement);
+        $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
     }
     
     public function testSeeXmlIncludes()
