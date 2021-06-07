@@ -662,16 +662,17 @@ EOF;
                     $typeName = null;
                     foreach($itemNode->childNodes as $childNode) {
                         /** @var \DOMNode $childNode */
-                        if($childNode->nodeType!==XML_ELEMENT_NODE) continue;
+                        if($childNode->nodeType!=XML_ELEMENT_NODE) continue;
                         /** @var \DOMElement $childNode */
-                        $type = $childNode->getAttributeNS(self::SCHEME_XSI, 'xsi:type');
+                        $type = $childNode->getAttribute('xsi:type');
                         if($type && !$typeName) $typeName = $type;
                         if($type && $typeName && $type!=$typeName) {
-                            $typeName = 'xsd:mixed';
+                            $typeName = 'xsd:anyType'; // or xsd:ur-type
                             break;
                         }
                     }
-                    $itemNode->setAttributeNS(self::SCHEME_SOAP_ENCODING, 'SOAP-ENC:arrayType', $typeName.'['.count($value).']');
+                    if(!$typeName) $typeName = 'xsd:anyType';
+                        $itemNode->setAttributeNS(self::SCHEME_SOAP_ENCODING, 'SOAP-ENC:arrayType', $typeName.'['.count($value).']');
                 }
                 break;
             case 'object':
