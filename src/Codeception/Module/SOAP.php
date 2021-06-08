@@ -245,24 +245,20 @@ EOF;
     {
         $soap_schema_url = $this->config['schema_url'];
         $xml = $this->xmlRequest;
-        $call = $xml->createElement('ns:' . $action);
-        // TODO: soapenv:encodingStyle attributum hozzáadása
+        $call = $xml->createElementNS($this->getSchema(), 'ns:' . $action);
 
         if ($body) {
             if(is_array($body)) {
                 $bodyXml = self::soapEncode($body);
                 foreach ($bodyXml->documentElement->childNodes as $bodyChildNode) {
-                    $bodyNode = $xml->importNode($bodyChildNode, true);
-                    $call->appendChild($bodyNode);
+                    $call->appendChild($xml->importNode($bodyChildNode, true));
                 }
             }
             else {
-                // Ez a sor hibásan alakítja XML-lé az összetett értékeket tartalmazó tömböket
                 $bodyXml = SoapUtils::toXml($body);
                 if ($bodyXml->hasChildNodes()) {
                     foreach ($bodyXml->childNodes as $bodyChildNode) {
-                        $bodyNode = $xml->importNode($bodyChildNode, true);
-                        $call->appendChild($bodyNode);
+                        $call->appendChild($xml->importNode($bodyChildNode, true));
                     }
                 }
             }
@@ -519,10 +515,8 @@ EOF;
     {
         $soap_schema_url = $this->config['schema_url'];
         $xml = new DOMDocument();
-        $root = $xml->createElement('soapenv:Envelope');
+        $root = $xml->createElementNS($soap_schema_url, 'soapenv:Envelope');
         $xml->appendChild($root);
-        $root->setAttribute('xmlns:ns', $this->getSchema());
-        $root->setAttribute('xmlns:soapenv', $soap_schema_url);
 
         $body = $xml->createElementNS($soap_schema_url, 'soapenv:Body');
         $header = $xml->createElementNS($soap_schema_url, 'soapenv:Header');
