@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Codeception\Module\SOAP;
 use Codeception\Util\Stub;
 use Codeception\Util\Soap as SoapUtil;
 
@@ -63,7 +64,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $body = $dom->createElement('item');
         $body->appendChild($dom->createElement('id', '1'));
         $body->appendChild($dom->createElement('subitem', '2'));
-        $request = $dom->createElement('ns:KillHumans');
+        $request = $dom->createElementNS($this->module->_getConfig('schema'), 'ns:KillHumans');
         $request->appendChild($body);
         $dom->documentElement->getElementsByTagName('Body')->item(0)->appendChild($request);
         $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
@@ -76,7 +77,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $body = $dom->createElement('item');
         $body->appendChild($dom->createElement('id', '1'));
         $body->appendChild($dom->createElement('subitem', '2'));
-        $request = $dom->createElement('ns:KillHumans');
+        $request = $dom->createElementNS($this->module->_getConfig('schema'), 'ns:KillHumans');
         $request->appendChild($body);
         $dom->documentElement->getElementsByTagName('Body')->item(0)->appendChild($request);
 
@@ -144,4 +145,117 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $res = $this->module->grabTextContentFrom('descendant-or-self::doc/descendant::node');
         $this->assertEquals('123', $res);
     }
+
+	/**
+	 * @dataProvider provSoapEncode
+	 * @param string $expected
+	 * @param mixed $value
+	 */
+	public function testSoapEncode($expected, $value) {
+		if(is_array($value) && isset($value[0]) && preg_match('~^{([^}]+)}$~', $value[0], $mm)) {
+			array_shift($value);
+			$className = $mm[1];
+			$value = new $className(...$value);
+		}
+		$encoded = SOAP::soapEncode($value);
+		$this->assertXmlStringEqualsXmlString($expected, $encoded);
+	}
+	function provSoapEncode() {
+		return [
+			[/** @lang */'<item xsi:type="xsd:int" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">13</item>',
+				13],
+			[/** @lang */'<item xsi:type="SOAP-ENC:Struct" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                            <a xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
+                                <item xsi:type="xsd:int">13</item>
+                                <item xsi:type="xsd:int">14</item>
+                                <item xsi:type="xsd:int">15</item>
+                            </a>
+                        </item>',
+				['a'=>[13, 14, 15]]],
+			[/** @lang */'<item xsi:type="SOAP-ENC:Struct" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                            <a xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENC:arrayType="xsd:anyType[3]" xsi:type="SOAP-ENC:Array">
+                                <item xsi:type="xsd:int">13</item>
+                                <item xsi:type="xsd:boolean">true</item>
+                                <item xsi:type="xsd:string">foo</item>
+                            </a>
+                        </item>',
+				['a'=>[13, true, 'foo']]],
+			[/** @lang */'<item xsi:type="xsd:dateTime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2004-04-12T13:20:00-05:00</item>', ['{\DateTime}',
+				'2004-04-12T13:20:00-05:00']],
+		];
+	}
+
+	/**
+	 * @dataProvider provSendSoapRequestFromArray
+	 * @param string $expected -- request envelope
+	 * @param array $data -- array of structured arguments
+	 *
+	 * @throws \Codeception\Exception\ModuleRequireException
+	 */
+	public function testSendSoapRequestFromArray($expected, $method, $data) {
+		$this->module->sendSoapRequest($method, $data);
+
+		$request = $this->module->xmlRequest;
+		$this->assertXmlStringEqualsXmlString($expected, $request->saveXML());
+	}
+	function provSendSoapRequestFromArray() {
+		return [
+			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+					<soapenv:Header/>
+					<soapenv:Body>
+						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns="http://www.w3.org/2001/xml.xsd">
+							<a xsi:type="xsd:int">13</a>
+							<b xsi:type="xsd:boolean">true</b>
+							<c xsi:type="xsd:string">foo</c>
+						</ns:myOperation>
+					</soapenv:Body>
+				</soapenv:Envelope>',
+				'myOperation',
+				['a'=>13, 'b'=>true, 'c'=>'foo']
+			],
+			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+					<soapenv:Header/>
+					<soapenv:Body>
+						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:ns="http://www.w3.org/2001/xml.xsd">
+							<a SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
+								<item xsi:type="xsd:int">1</item>
+								<item xsi:type="xsd:int">2</item>
+								<item xsi:type="xsd:int">3</item>
+							</a>
+							<b SOAP-ENC:arrayType="xsd:anyType[3]" xsi:type="SOAP-ENC:Array">
+								<item xsi:type="xsd:string">foo</item>
+								<item xsi:type="xsd:int">13</item>
+								<item xsi:type="xsd:boolean">false</item>
+							</b>
+							<c xsi:type="xsd:string">baar</c>
+						</ns:myOperation>
+					</soapenv:Body>
+				</soapenv:Envelope>',
+				'myOperation',
+				['a'=>[1,2,3], 'b'=>['foo', 13, false], 'c'=>'baar']
+			],
+			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+					<soapenv:Header/>
+					<soapenv:Body>
+						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:ns="http://www.w3.org/2001/xml.xsd">
+							<a SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
+								<item xsi:type="xsd:int">1</item>
+								<item xsi:type="xsd:int">2</item>
+								<item xsi:type="xsd:int">3</item>
+							</a>
+							<b SOAP-ENC:arrayType="xsd:anyType[3]" xsi:type="SOAP-ENC:Array">
+								<item xsi:type="xsd:string">foo</item>
+								<item xsi:type="xsd:int">13</item>
+								<item xsi:type="xsd:boolean">false</item>
+							</b>
+							<c xsi:type="xsd:string">baar</c>
+						</ns:myOperation>
+					</soapenv:Body>
+				</soapenv:Envelope>',
+				'myOperation',
+				['a'=>[1,2,3], 'b'=>['foo', 13, false], 'c'=>'baar']
+			]
+		];
+	}
+
 }

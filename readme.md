@@ -26,3 +26,8 @@ See [the module documentation](https://codeception.com/docs/modules/SOAP).
 `Codeception Module SOAP` is open-sourced software licensed under the [MIT](/LICENSE) License.
 
 © Codeception PHP Testing Framework
+
+## Changes
+
+- sendSoapRequest now creates request from array correctly (under construction)
+- consolidated namespace usage
