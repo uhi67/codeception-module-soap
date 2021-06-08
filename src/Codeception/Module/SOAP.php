@@ -245,14 +245,14 @@ EOF;
         // TODO: soapenv:encodingStyle attributum hozzáadása
 
         if ($body) {
-//            if(is_array($body)) {
-//                $bodyXml = self::soapEncode($body);
-//                foreach ($bodyXml->childNodes as $bodyChildNode) {
-//                    $bodyNode = $xml->importNode($bodyChildNode, true);
-//                    $call->appendChild($bodyNode);
-//                }
-//            }
-//            else {
+            if(is_array($body)) {
+                $bodyXml = self::soapEncode($body);
+                foreach ($bodyXml->documentElement->childNodes as $bodyChildNode) {
+                    $bodyNode = $xml->importNode($bodyChildNode, true);
+                    $call->appendChild($bodyNode);
+                }
+            }
+            else {
                 // Ez a sor hibásan alakítja XML-lé az összetett értékeket tartalmazó tömböket
                 $bodyXml = SoapUtils::toXml($body);
                 if ($bodyXml->hasChildNodes()) {
@@ -261,7 +261,7 @@ EOF;
                         $call->appendChild($bodyNode);
                     }
                 }
-//            }
+            }
         }
 
         $xmlBody = $xml->getElementsByTagNameNS($soap_schema_url, 'Body')->item(0);
