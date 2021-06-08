@@ -14,12 +14,16 @@ use Codeception\TestInterface;
 use Codeception\Util\Soap as SoapUtils;
 use Codeception\Util\XmlBuilder;
 use Codeception\Util\XmlStructure;
+use DateTime;
 use DOMDocument;
+use DOMElement;
+use DOMNode;
 use ErrorException;
 use PHPUnit\Framework\Assert;
+use stdClass;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Response;
-use yii\helpers\ArrayHelper;
+use function count;
 
 /**
  * Module for testing SOAP WSDL web services.
@@ -610,14 +614,16 @@ EOF;
      *          </a>
      *      </item>
      *      ```
+     *
      * @see https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383522
      *
      * @param mixed $value
-     * @param \DOMNode $parent -- optional node of an existing document to append to.
+     * @param DOMNode|null $parent -- optional node of an existing document to append to.
      * @param string $nodeName -- name of created typed node, default is 'item'
+     *
      * @return DOMDocument
      */
-    public static function soapEncode($value, $parent=null, $nodeName='item') {
+    public static function soapEncode($value, $parent=null, string $nodeName='item'): DOMDocument {
         if($parent===null) {
             $result = new DOMDocument();
             $parent = $result;
@@ -645,7 +651,7 @@ EOF;
                 $itemNode->textContent = $value;
                 break;
             case 'array':
-                if(ArrayHelper::isAssociative($value, false)) {
+                if(self::isAssoc($value)) {
                     $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'SOAP-ENC:Struct');
                     foreach ($value as $k => $v) {
                         if(is_integer($k)) continue; // skip non-associative elements
@@ -657,13 +663,13 @@ EOF;
                     // SOAP-ENC:arrayType="xsd:string[3]"
                     $value = array_values($value);
                     foreach ($value as $v) {
-                        self::soapEncode($v, $itemNode, 'item');
+                        self::soapEncode($v, $itemNode);
                     }
                     $typeName = null;
                     foreach($itemNode->childNodes as $childNode) {
-                        /** @var \DOMNode $childNode */
+                        /** @var DOMNode $childNode */
                         if($childNode->nodeType!=XML_ELEMENT_NODE) continue;
-                        /** @var \DOMElement $childNode */
+                        /** @var DOMElement $childNode */
                         $type = $childNode->getAttribute('xsi:type');
                         if($type && !$typeName) $typeName = $type;
                         if($type && $typeName && $type!=$typeName) {
@@ -676,13 +682,13 @@ EOF;
                 }
                 break;
             case 'object':
-                if($value instanceof \stdClass) {
+                if($value instanceof stdClass) {
                     $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'SOAP-ENC:Struct');
                     foreach ($value as $k => $v) {
                         self::soapEncode($v, $itemNode, $k);
                     }
                 }
-                elseif($value instanceof \DateTime) {
+                elseif($value instanceof DateTime) {
                     $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:dateTime');
                     $itemNode->textContent = $value->format(DATE_ATOM);
                 }
@@ -696,4 +702,15 @@ EOF;
         }
         return $result;
     }
+
+	/**
+	 * Array is associative if has any string key.
+	 *
+	 * @param array $array
+	 *
+	 * @return bool
+	 */
+    public static function isAssoc(array $array): bool {
+		return (bool) count(array_filter(array_keys($array), 'is_string'));
+	}
 }
