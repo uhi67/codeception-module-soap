@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:tns="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/"
+             name="SampleApiController"
+             targetNamespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl">
+    <wsdl:types>
+        <xsd:schema targetNamespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl">
+            <xsd:complexType name="MyObject">
+                <xsd:all>
+                    <xsd:element name="a" type="xsd:int">
+                        <xsd:annotation>
+                            <xsd:documentation>An integer argument. Write structure element description into the comment
+                                block of the variable.
+                            </xsd:documentation>
+                            <xsd:appinfo/>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="b" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>A boolean argument</xsd:documentation>
+                            <xsd:appinfo/>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="c" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>A string argument</xsd:documentation>
+                            <xsd:appinfo>A sample example</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:all>
+            </xsd:complexType>
+            <xsd:complexType name="mixedArray">
+                <xsd:complexContent>
+                    <xsd:restriction base="soap-enc:Array">
+                        <xsd:attribute ref="soap-enc:arrayType" arrayType="xsd:mixed[]"/>
+                    </xsd:restriction>
+                </xsd:complexContent>
+            </xsd:complexType>
+        </xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="soapTestIn">
+        <wsdl:part name="a" type="xsd:string"/>
+    </wsdl:message>
+    <wsdl:message name="soapTestOut">
+        <wsdl:part name="return" type="xsd:string"/>
+    </wsdl:message>
+    <wsdl:message name="mirrorIn">
+        <wsdl:part name="aaa" type="xsd:string"/>
+    </wsdl:message>
+    <wsdl:message name="mirrorOut">
+        <wsdl:part name="return" type="xsd:string"/>
+    </wsdl:message>
+    <wsdl:message name="getObjectIn">
+        <wsdl:part name="xxx" type="xsd:struct"/>
+    </wsdl:message>
+    <wsdl:message name="getObjectOut">
+        <wsdl:part name="return" type="xsd:struct"/>
+    </wsdl:message>
+    <wsdl:message name="getObject2In">
+        <wsdl:part name="a" type="xsd:int"/>
+        <wsdl:part name="b" type="xsd:boolean"/>
+        <wsdl:part name="c" type="xsd:string"/>
+    </wsdl:message>
+    <wsdl:message name="getObject2Out">
+        <wsdl:part name="return" type="tns:MyObject"/>
+    </wsdl:message>
+    <wsdl:message name="getStdClassIn">
+        <wsdl:part name="a" type="tns:mixedArray"/>
+    </wsdl:message>
+    <wsdl:message name="getStdClassOut">
+        <wsdl:part name="return" type="xsd:struct"/>
+    </wsdl:message>
+    <wsdl:portType name="SampleApiControllerPortType">
+        <wsdl:operation name="soapTest">
+            <wsdl:documentation>Write the description of the operation into the phpdoc comment block of the controller
+                method.
+            </wsdl:documentation>
+            <wsdl:input message="tns:soapTestIn"/>
+            <wsdl:output message="tns:soapTestOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="mirror">
+            <wsdl:documentation>Returns the value of the string argument.</wsdl:documentation>
+            <wsdl:input message="tns:mirrorIn"/>
+            <wsdl:output message="tns:mirrorOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="getObject">
+            <wsdl:documentation/>
+            <wsdl:input message="tns:getObjectIn"/>
+            <wsdl:output message="tns:getObjectOut"/>
+        </wsdl:operation>
+        <wsdl:operation name="getObject2">
+            <wsdl:documentation/>
+            <wsdl:input message="tns:getObject2In"/>
+            <wsdl:output message="tns:getObject2Out"/>
+        </wsdl:operation>
+        <wsdl:operation name="getStdClass">
+            <wsdl:documentation>Mirrors input array in a field of an stdClass.</wsdl:documentation>
+            <wsdl:input message="tns:getStdClassIn"/>
+            <wsdl:output message="tns:getStdClassOut"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="SampleApiControllerBinding" type="tns:SampleApiControllerPortType">
+        <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="soapTest">
+            <soap:operation soapAction="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl#soapTest"
+                            style="rpc"/>
+            <wsdl:input>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="mirror">
+            <soap:operation soapAction="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl#mirror"
+                            style="rpc"/>
+            <wsdl:input>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getObject">
+            <soap:operation soapAction="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl#getObject"
+                            style="rpc"/>
+            <wsdl:input>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getObject2">
+            <soap:operation soapAction="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl#getObject2"
+                            style="rpc"/>
+            <wsdl:input>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getStdClass">
+            <soap:operation soapAction="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl#getStdClass"
+                            style="rpc"/>
+            <wsdl:input>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                           namespace="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="SampleApiControllerService">
+        <wsdl:port name="SampleApiControllerPort" binding="tns:SampleApiControllerBinding">
+            <soap:address location="http://localhost/sample-api/index?ws=1"/>
+        </wsdl:port>
+    </wsdl:service>
+</definitions>

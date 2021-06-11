@@ -12,21 +12,14 @@ use Codeception\Lib\Interfaces\DependsOnModule;
 use Codeception\Module;
 use Codeception\TestInterface;
 use Codeception\Util\Soap as SoapUtils;
-use Codeception\Util\Xml;
 use Codeception\Util\XmlBuilder;
 use Codeception\Util\XmlStructure;
-use DateTime;
 use DOMDocument;
-use DOMElement;
-use DOMNode;
 use ErrorException;
 use PHPUnit\Framework\Assert;
-use stdClass;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Response;
 use uhi67\soapHelper\SoapClientDry;
-use uhi67\services\XmlHelper;
-use function count;
 
 /**
  * Module for testing SOAP WSDL web services.
@@ -244,13 +237,13 @@ EOF;
      * - single argument is a one-element array
      * - using WSDL (URI, best is full-path filename) is recommended, otherwise non-wsdl request will be created
 	 *
-     * @param string $wsdl -- URI (full filename path is possible)
+     * @param string|null $wsdl -- URI (full filename path is possible)
 	 * @param string $action
 	 * @param object|array|string $body
 	 *
-	 * @throws ModuleRequireException
+	 * @throws ModuleRequireException|\SoapFault
 	 */
-    public function sendSoapRequest(string $action, $body = '', string $wsdl=null): void
+    public function sendSoapRequest(string $action, $body = '', $wsdl=null): void
     {
         if ($body) {
             if(is_array($body)) {
@@ -264,7 +257,7 @@ EOF;
 
                 $bodyXml = SoapUtils::toXml($body);
                 if ($bodyXml->hasChildNodes()) {
-                    foreach ($bodyXml->documentElement->childNodes as $bodyChildNode) {
+                    foreach ($bodyXml->childNodes as $bodyChildNode) {
                         $call->appendChild($xml->importNode($bodyChildNode, true));
                     }
                 }

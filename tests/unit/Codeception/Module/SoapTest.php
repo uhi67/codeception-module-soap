@@ -1,20 +1,25 @@
 <?php
-
 declare(strict_types=1);
 
+namespace unit\Codeception\Module;
+
+use Codeception\Configuration;
 use Codeception\Module\SOAP;
+use Codeception\Module\UniversalFramework;
+use Codeception\PHPUnit\TestCase;
 use Codeception\Util\Stub;
 use Codeception\Util\Soap as SoapUtil;
+use DOMDocument;
 
 /**
  * Class SoapTest
  * @group appveyor
  */
-final class SoapTest extends \Codeception\PHPUnit\TestCase
+final class SoapTest extends TestCase
 {
 
     /**
-     * @var \Codeception\Module\Soap
+     * @var Soap
      */
     protected $module = null;
 
@@ -22,23 +27,23 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
 
     public function _setUp()
     {
-        $container = \Codeception\Util\Stub::make('Codeception\Lib\ModuleContainer');
-        $frameworkModule = new \Codeception\Module\UniversalFramework($container);
+        $container = Stub::make('Codeception\Lib\ModuleContainer');
+        $frameworkModule = new UniversalFramework($container);
         $frameworkModule->client = Stub::makeEmpty('\Codeception\Lib\Connector\Universal');
-        $this->module = new \Codeception\Module\SOAP($container);
+        $this->module = new SOAP($container);
         $this->module->_setConfig(array(
             'schema' => 'http://www.w3.org/2001/xml.xsd',
             'endpoint' => 'http://codeception.com/api/wsdl'
         ));
         $this->module->_inject($frameworkModule);
-        $this->layout = \Codeception\Configuration::dataDir().'/layout.xml';
+        $this->layout = Configuration::dataDir().'/layout.xml';
         $this->module->isFunctional = true;
         $this->module->_before(Stub::makeEmpty('\Codeception\Test\Test'));
     }
     
     public function testXmlIsBuilt()
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->load($this->layout);
         $this->assertXmlStringEqualsXmlString($dom->saveXML(), $this->module->xmlRequest->saveXML());
     }
@@ -46,7 +51,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
     public function testBuildHeaders()
     {
         $this->module->haveSoapHeader('AuthHeader', ['username' => 'davert', 'password' => '123456']);
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->load($this->layout);
         $header = $dom->createElement('AuthHeader');
         $header->appendChild($dom->createElement('username', 'davert'));
@@ -59,7 +64,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
     {
         $this->module->sendSoapRequest('KillHumans', "<item><id>1</id><subitem>2</subitem></item>");
         $this->assertNotNull($this->module->xmlRequest);
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->load($this->layout);
         $body = $dom->createElement('item');
         $body->appendChild($dom->createElement('id', '1'));
@@ -72,7 +77,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
 
     public function testBuildRequestWithDomNode()
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->load($this->layout);
         $body = $dom->createElement('item');
         $body->appendChild($dom->createElement('id', '1'));
@@ -90,8 +95,8 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $dom = new DOMDocument();
         $this->module->xmlResponse = $dom;
         $dom->preserveWhiteSpace = false;
-        $dom->loadXML('<?xml version="1.0" encoding="UTF-8"?>    <doc> <a a2="2" a1="1" >123</a>  </doc>');
-        $this->module->seeSoapResponseIncludes('<a    a2="2"      a1="1" >123</a>');
+        $dom->loadXML(/** @lang XML */'<?xml version="1.0" encoding="UTF-8"?><doc><a a2="2" a1="1">123</a></doc>');
+        $this->module->seeSoapResponseIncludes(/** @lang XML */'<a a2="2" a1="1">123</a>');
     }
 
     public function testSeeXmlContainsXPath()
@@ -99,7 +104,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $dom = new DOMDocument();
         $this->module->xmlResponse = $dom;
         $dom->preserveWhiteSpace = false;
-        $dom->loadXML('<?xml version="1.0" encoding="UTF-8"?>    <doc> <a a2="2" a1="1" >123</a>  </doc>');
+        $dom->loadXML(/** @lang XML */'<?xml version="1.0" encoding="UTF-8"?>    <doc> <a a2="2" a1="1" >123</a>  </doc>');
         $this->module->seeSoapResponseContainsXPath('//doc/a[@a2=2 and @a1=1]');
     }
 
@@ -108,7 +113,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
         $dom = new DOMDocument();
         $this->module->xmlResponse = $dom;
         $dom->preserveWhiteSpace = false;
-        $dom->loadXML('<?xml version="1.0" encoding="UTF-8"?>    <doc> <a a2="2" a1="1" >123</a>  </doc>');
+        $dom->loadXML(/** @lang XML */'<?xml version="1.0" encoding="UTF-8"?>    <doc> <a a2="2" a1="1" >123</a>  </doc>');
         $this->module->dontSeeSoapResponseContainsXPath('//doc/a[@a2=2 and @a31]');
     }
 
@@ -117,7 +122,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
     {
         $dom = new DOMDocument();
         $this->module->xmlResponse = $dom;
-        $xml = '<?xml version="1.0" encoding="UTF-8"?> <doc> <a a2="2" a1="1" >123</a>  </doc>';
+        $xml = /** @lang XML */'<?xml version="1.0" encoding="UTF-8"?> <doc> <a a2="2" a1="1" >123</a>  </doc>';
         $dom->preserveWhiteSpace = false;
         $dom->loadXML($xml);
         $this->module->seeSoapResponseEquals($xml);
@@ -127,7 +132,7 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
     {
         $dom = new DOMDocument();
         $this->module->xmlResponse = $dom;
-        $dom->loadXML('<?xml version="1.0" encoding="UTF-8"?>'."\n".'  <doc><a    a2="2" a1="1"  >123</a></doc>');
+        $dom->loadXML(/** @lang XML */'<?xml version="1.0" encoding="UTF-8"?><doc><a    a2="2" a1="1"  >123</a></doc>');
         $xml = SoapUtil::request()->doc->a
                 ->attr('a2', '2')
                 ->attr('a1', '1')
@@ -147,45 +152,6 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
     }
 
 	/**
-	 * @dataProvider provSoapEncode
-	 * @param string $expected
-	 * @param mixed $value
-	 */
-	public function testSoapEncode($expected, $value) {
-		if(is_array($value) && isset($value[0]) && preg_match('~^{([^}]+)}$~', $value[0], $mm)) {
-			array_shift($value);
-			$className = $mm[1];
-			$value = new $className(...$value);
-		}
-		$encoded = SOAP::soapEncode($value);
-		$this->assertXmlStringEqualsXmlString($expected, $encoded);
-	}
-	function provSoapEncode() {
-		return [
-			[/** @lang */'<item xsi:type="xsd:int" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">13</item>',
-				13],
-			[/** @lang */'<item xsi:type="SOAP-ENC:Struct" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                            <a xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
-                                <item xsi:type="xsd:int">13</item>
-                                <item xsi:type="xsd:int">14</item>
-                                <item xsi:type="xsd:int">15</item>
-                            </a>
-                        </item>',
-				['a'=>[13, 14, 15]]],
-			[/** @lang */'<item xsi:type="SOAP-ENC:Struct" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                            <a xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENC:arrayType="xsd:anyType[3]" xsi:type="SOAP-ENC:Array">
-                                <item xsi:type="xsd:int">13</item>
-                                <item xsi:type="xsd:boolean">true</item>
-                                <item xsi:type="xsd:string">foo</item>
-                            </a>
-                        </item>',
-				['a'=>[13, true, 'foo']]],
-			[/** @lang */'<item xsi:type="xsd:dateTime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2004-04-12T13:20:00-05:00</item>', ['{\DateTime}',
-				'2004-04-12T13:20:00-05:00']],
-		];
-	}
-
-	/**
 	 * @dataProvider provSendSoapRequestFromArray
 	 * @param string $expected -- request envelope
 	 * @param array $data -- array of structured arguments
@@ -193,29 +159,27 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
 	 * @throws \Codeception\Exception\ModuleRequireException
 	 */
 	public function testSendSoapRequestFromArray($expected, $method, $data) {
-		$this->module->sendSoapRequest($method, $data);
-
+		$this->module->sendSoapRequest($method, $data, dirname(__DIR__,3).'/_data/sample-wsdl.xml');
 		$request = $this->module->xmlRequest;
 		$this->assertXmlStringEqualsXmlString($expected, $request->saveXML());
 	}
 	function provSendSoapRequestFromArray() {
 		return [
-			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-					<soapenv:Header/>
-					<soapenv:Body>
-						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns="http://www.w3.org/2001/xml.xsd">
+			[/** @lang XMLs */'<SOAP-ENV:Envelope xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:uhi67/services/tests/app/controllers/SampleApiControllerwsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+					<SOAP-ENV:Body>
+						<ns1:getObject2>
 							<a xsi:type="xsd:int">13</a>
 							<b xsi:type="xsd:boolean">true</b>
 							<c xsi:type="xsd:string">foo</c>
-						</ns:myOperation>
-					</soapenv:Body>
-				</soapenv:Envelope>',
-				'myOperation',
+						</ns1:getObject2>
+					</SOAP-ENV:Body>
+				</SOAP-ENV:Envelope>',
+				'getObject2',
 				['a'=>13, 'b'=>true, 'c'=>'foo']
 			],
-			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-					<soapenv:Header/>
-					<soapenv:Body>
+			[/** @lang XMLs */'<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+					<SOAP-ENV:Header/>
+					<SOAP-ENV:Body>
 						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:ns="http://www.w3.org/2001/xml.xsd">
 							<a SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
 								<item xsi:type="xsd:int">1</item>
@@ -229,14 +193,14 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
 							</b>
 							<c xsi:type="xsd:string">baar</c>
 						</ns:myOperation>
-					</soapenv:Body>
-				</soapenv:Envelope>',
+					</SOAP-ENV:Body>
+				</SOAP-ENV:Envelope>',
 				'myOperation',
 				['a'=>[1,2,3], 'b'=>['foo', 13, false], 'c'=>'baar']
 			],
-			['<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-					<soapenv:Header/>
-					<soapenv:Body>
+			[/** @lang XMLs */'<SOAP-ENV:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+					<SOAP-ENV:Header/>
+					<SOAP-ENV:Body>
 						<ns:myOperation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:ns="http://www.w3.org/2001/xml.xsd">
 							<a SOAP-ENC:arrayType="xsd:int[3]" xsi:type="SOAP-ENC:Array">
 								<item xsi:type="xsd:int">1</item>
@@ -250,8 +214,8 @@ final class SoapTest extends \Codeception\PHPUnit\TestCase
 							</b>
 							<c xsi:type="xsd:string">baar</c>
 						</ns:myOperation>
-					</soapenv:Body>
-				</soapenv:Envelope>',
+					</SOAP-ENV:Body>
+				</SOAP-ENV:Envelope>',
 				'myOperation',
 				['a'=>[1,2,3], 'b'=>['foo', 13, false], 'c'=>'baar']
 			]
