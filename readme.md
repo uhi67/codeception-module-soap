@@ -2,10 +2,10 @@
 
 A SOAP module for Codeception.
 
-[![Actions Status](https://github.com/Codeception/module-soap/workflows/CI/badge.svg)](https://github.com/Codeception/module-soap/actions)
-[![Latest Stable Version](https://poser.pugx.org/codeception/module-soap/v/stable)](https://github.com/Codeception/module-soap/releases)
-[![Total Downloads](https://poser.pugx.org/codeception/module-soap/downloads)](https://packagist.org/packages/codeception/module-soap)
-[![License](https://poser.pugx.org/codeception/module-soap/license)](/LICENSE)
+[![Actions Status](https://github.com/uhi67/codeception-module-soap/workflows/CI/badge.svg)](https://github.com/uhi67/codeception-module-soap/actions)
+[![Latest Stable Version](https://poser.pugx.org/uhi67/codeception-module-soap/v/stable)](https://github.com/uhi67/codeception-module-soap/releases)
+[![Total Downloads](https://poser.pugx.org/uhi67/codeception-module-soap/downloads)](https://packagist.org/packages/uhi67/codeception-module-soap)
+[![License](https://poser.pugx.org/uhi67/codeception-module-soap/license)](/LICENSE)
 
 ## Requirements
 
@@ -14,7 +14,7 @@ A SOAP module for Codeception.
 ## Installation
 
 ```
-composer require "codeception/module-soap" --dev
+composer require "uhi67/module-soap" --dev
 ```
 
 ## Documentation

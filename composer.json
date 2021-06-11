@@ -1,5 +1,5 @@
 {
-	"name": "codeception/module-soap",
+	"name": "uhi67/codeception-module-soap",
 	"description": "Soap module for Codeception",
 	"keywords": [ "codeception", "soap" ],
 	"homepage": "https://codeception.com/",
@@ -8,6 +8,10 @@
 	"authors": [
 		{
 			"name": "Michael Bodnarchuk"
+		},
+		{
+			"name": "Uherkovich Péter",
+			"email": "uherkovich.peter@gmail.com"
 		}
 	],
 	"minimum-stability": "RC",
