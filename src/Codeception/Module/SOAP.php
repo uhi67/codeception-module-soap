@@ -241,7 +241,7 @@ EOF;
 	 * @param string $action
 	 * @param object|array|string $body
 	 *
-	 * @throws ModuleRequireException|\SoapFault
+	 * @throws \ModuleRequireException|\SoapFault
 	 */
     public function sendSoapRequest(string $action, $body = '', $wsdl=null): void
     {
@@ -419,12 +419,16 @@ EOF;
 	 * ```
 	 *
 	 * @param string $xPath
+	 * @param array $namespaces
+	 * @param string$message
 	 *
 	 * @throws ModuleException
 	 */
-    public function seeSoapResponseContainsXPath(string $xPath): void
+    public function seeSoapResponseContainsXPath(string $xPath, $namespaces=[], $message=''): void
     {
-        $this->assertTrue($this->getXmlStructure()->matchesXpath($xPath));
+    	$nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
+    	$this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
+        $this->assertGreaterThan(0, $nodeList->length, 'Soap Response does not contain XPath query. '.$message);
     }
 
 	/**
@@ -435,14 +439,17 @@ EOF;
 	 * ```
 	 *
 	 * @param string $xPath
+	 * @param array $namespaces
+	 * @param string$message
 	 *
 	 * @throws ModuleException
 	 */
-    public function dontSeeSoapResponseContainsXPath(string $xPath): void
+    public function dontSeeSoapResponseContainsXPath(string $xPath, $namespaces, $message=''): void
     {
-        $this->assertFalse($this->getXmlStructure()->matchesXpath($xPath));
+		$nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
+		$this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
+		$this->assertEquals(0, $nodeList->length, 'Soap Response does contain XPath query. '.$message);
     }
-
 
     /**
      * Checks response code from server.
@@ -514,14 +521,15 @@ EOF;
     {
         $soap_schema_url = $this->config['schema_url'];
         $xml = new DOMDocument();
-        $root = $xml->createElementNS($soap_schema_url, 'soapenv:Envelope');
+        $root = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Envelope');
         $xml->appendChild($root);
 
-        $body = $xml->createElementNS($soap_schema_url, 'soapenv:Body');
-        $header = $xml->createElementNS($soap_schema_url, 'soapenv:Header');
-        $root->appendChild($header);
+		$header = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Header');
+		$root->appendChild($header);
 
-        $root->appendChild($body);
+        $body = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Body');
+		$root->appendChild($body);
+
         $this->xmlRequest = $xml;
         return $xml;
     }
