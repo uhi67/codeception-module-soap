@@ -24,7 +24,7 @@ use PHPUnit\Framework\Assert;
 use stdClass;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Response;
-use uhi67\soaphelper\SoapClientDry;
+use uhi67\soapHelper\SoapClientDry;
 use uhi67\services\XmlHelper;
 use function count;
 
