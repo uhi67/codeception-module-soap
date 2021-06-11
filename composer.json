@@ -15,7 +15,8 @@
 		"php": "^7.1 || ^8.0",
 		"ext-dom": "*",
 		"codeception/codeception": "^4.0",
-		"codeception/lib-innerbrowser": "^1.0"
+		"codeception/lib-innerbrowser": "^1.0",
+		"uhi67/soaphelper": "^1.0"
 	},
 	"require-dev": {
 		"codeception/util-universalframework": "^1.0"

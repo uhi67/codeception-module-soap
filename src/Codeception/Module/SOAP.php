@@ -12,6 +12,7 @@ use Codeception\Lib\Interfaces\DependsOnModule;
 use Codeception\Module;
 use Codeception\TestInterface;
 use Codeception\Util\Soap as SoapUtils;
+use Codeception\Util\Xml;
 use Codeception\Util\XmlBuilder;
 use Codeception\Util\XmlStructure;
 use DateTime;
@@ -23,6 +24,8 @@ use PHPUnit\Framework\Assert;
 use stdClass;
 use Symfony\Component\BrowserKit\AbstractBrowser;
 use Symfony\Component\BrowserKit\Response;
+use uhi67\soaphelper\SoapClientDry;
+use uhi67\services\XmlHelper;
 use function count;
 
 /**
@@ -220,14 +223,14 @@ EOF;
     }
 
 	/**
-         * Submits request to endpoint.
+     * Submits test request to endpoint 
 	 *
 	 * Requires of api function name and parameters.
-	 * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array (if no attributes).
+	 * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array
 	 *
 	 * You are allowed to execute as much requests as you need inside test.
 	 *
-	 * Example:
+	 * ### Example:
 	 *
 	 * ``` php
 	 * $I->sendSoapRequest('UpdateUser', '<user><id>1</id><name>notdavert</name></user>');
@@ -235,43 +238,46 @@ EOF;
 	 *   ->id->val(1)->parent()
 	 *   ->name->val('notdavert');
 	 * ```
+     * 
+     * ### Using array parameters:
+     * 
+     * - single argument is a one-element array
+     * - using WSDL (URI, best is full-path filename) is recommended, otherwise non-wsdl request will be created
 	 *
+     * @param string $wsdl -- URI (full filename path is possible)
 	 * @param string $action
-	 * @param object|string $body
+	 * @param object|array|string $body
 	 *
 	 * @throws ModuleRequireException
 	 */
-    public function sendSoapRequest(string $action, $body = ''): void
+    public function sendSoapRequest(string $action, $body = '', string $wsdl=null): void
     {
-        $soap_schema_url = $this->config['schema_url'];
-        $xml = $this->xmlRequest;
-        $call = $xml->createElementNS($this->getSchema(), 'ns:' . $action);
-
         if ($body) {
             if(is_array($body)) {
-                $bodyXml = self::soapEncode($body);
-                foreach ($bodyXml->documentElement->childNodes as $bodyChildNode) {
-                    $call->appendChild($xml->importNode($bodyChildNode, true));
-                }
+                $xml = SoapClientDry::__requestXml($body, $action, $wsdl, null, true);
+                $this->xmlRequest = $xml;
             }
             else {
+                $soap_schema_url = $this->config['schema_url'];
+                $xml = $this->xmlRequest;
+                $call = $xml->createElementNS($this->getSchema(), 'ns:' . $action);
+
                 $bodyXml = SoapUtils::toXml($body);
                 if ($bodyXml->hasChildNodes()) {
-                    foreach ($bodyXml->childNodes as $bodyChildNode) {
+                    foreach ($bodyXml->documentElement->childNodes as $bodyChildNode) {
                         $call->appendChild($xml->importNode($bodyChildNode, true));
                     }
                 }
+                $xmlBody = $xml->getElementsByTagNameNS($soap_schema_url, 'Body')->item(0);
+
+                // cleanup if body already set
+                foreach ($xmlBody->childNodes as $node) {
+                    $xmlBody->removeChild($node);
+                }
+                $xmlBody->appendChild($call);
             }
         }
 
-        $xmlBody = $xml->getElementsByTagNameNS($soap_schema_url, 'Body')->item(0);
-
-        // cleanup if body already set
-        foreach ($xmlBody->childNodes as $node) {
-            $xmlBody->removeChild($node);
-        }
-
-        $xmlBody->appendChild($call);
         $this->debugSection('Request', $req = $xml->C14N());
 
         if ($this->isFunctional && $this->config['framework_collect_buffer']) {
@@ -585,126 +591,4 @@ EOF;
         $this->processRequest($action, $body);
         return $this->client->getInternalResponse()->getContent();
     }
-
-    /**
-     * Creates an XML structure from (complex) value
-     *
-     * Example:
-     *
-     * - 13
-     *
-     *      `<item xsi:type="xsd:int">13</item>`
-     *
-     * - ['a'=>[13, true, 'foo']]
-     *      ```xml
-     *      <item xsi:type="SOAP-ENC:Struct>
-     *          <a SOAP-ENC:arrayType="xsd:string[3]" xsi:type="SOAP-ENC:Array"
-     *              xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-     *              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     *          >
-     *              <item xsi:type="xsd:int">13</item>
-     *              <item xsi:type="xsd:boolean">true</item>
-     *              <item xsi:type="xsd:string">citrom</item>
-     *          </a>
-     *      </item>
-     *      ```
-     *
-     * @see https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383522
-     *
-     * @param mixed $value
-     * @param DOMNode|null $parent -- optional node of an existing document to append to.
-     * @param string $nodeName -- name of created typed node, default is 'item'
-     *
-     * @return DOMDocument
-     */
-    public static function soapEncode($value, $parent=null, string $nodeName='item'): DOMDocument {
-        if($parent===null) {
-            $result = new DOMDocument();
-            $parent = $result;
-        }
-        else {
-            $result = $parent->ownerDocument;
-        }
-        $itemNode = $result->createElement($nodeName);
-        $parent->appendChild($itemNode);
-	    switch(gettype($value)) {
-            case 'boolean':
-                $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:boolean');
-                $itemNode->textContent = $value ? 'true' : 'false';
-                break;
-            case 'integer':
-                $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:int');
-                $itemNode->textContent = $value;
-                break;
-            case 'double':
-                $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:decimal');
-                $itemNode->textContent = $value;
-                break;
-            case 'string':
-                $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:string');
-                $itemNode->textContent = $value;
-                break;
-            case 'array':
-                if(self::isAssoc($value)) {
-                    $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'SOAP-ENC:Struct');
-                    foreach ($value as $k => $v) {
-                        if(is_integer($k)) continue; // skip non-associative elements
-                        self::soapEncode($v, $itemNode, $k);
-                    }
-                }
-                else {
-                    $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'SOAP-ENC:Array');
-                    // SOAP-ENC:arrayType="xsd:string[3]"
-                    $value = array_values($value);
-                    foreach ($value as $v) {
-                        self::soapEncode($v, $itemNode);
-                    }
-                    $typeName = null;
-                    foreach($itemNode->childNodes as $childNode) {
-                        /** @var DOMNode $childNode */
-                        if($childNode->nodeType!=XML_ELEMENT_NODE) continue;
-                        /** @var DOMElement $childNode */
-                        $type = $childNode->getAttribute('xsi:type');
-                        if($type && !$typeName) $typeName = $type;
-                        if($type && $typeName && $type!=$typeName) {
-                            $typeName = 'xsd:anyType'; // or xsd:ur-type
-                            break;
-                        }
-                    }
-                    if(!$typeName) $typeName = 'xsd:anyType';
-                        $itemNode->setAttributeNS(self::SCHEME_SOAP_ENCODING, 'SOAP-ENC:arrayType', $typeName.'['.count($value).']');
-                }
-                break;
-            case 'object':
-                if($value instanceof stdClass) {
-                    $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'SOAP-ENC:Struct');
-                    foreach ($value as $k => $v) {
-                        self::soapEncode($v, $itemNode, $k);
-                    }
-                }
-                elseif($value instanceof DateTime) {
-                    $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:type', 'xsd:dateTime');
-                    $itemNode->textContent = $value->format(DATE_ATOM);
-                }
-                else {
-                    // TODO: use classMap of WebserviceAction
-                }
-                break;
-            case 'NULL':
-                $itemNode->setAttributeNS(self::SCHEME_XSI, 'xsi:nil', 'true');
-                break;
-        }
-        return $result;
-    }
-
-	/**
-	 * Array is associative if has any string key.
-	 *
-	 * @param array $array
-	 *
-	 * @return bool
-	 */
-    public static function isAssoc(array $array): bool {
-		return (bool) count(array_filter(array_keys($array), 'is_string'));
-	}
 }
