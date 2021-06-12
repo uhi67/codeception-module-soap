@@ -117,6 +117,10 @@ EOF;
      * @var InnerBrowser
      */
     protected $connectionModule;
+    
+    // Parameters of last fake call
+    private $wsdl;
+    private $method;
 
     public function _before(TestInterface $test): void
     {
@@ -249,6 +253,8 @@ EOF;
             if(is_array($body)) {
                 $xml = SoapClientDry::__requestXml($body, $action, $wsdl, null, true);
                 $this->xmlRequest = $xml;
+                $this->wsdl = $wsdl;
+                $this->method = $action;
             }
             else {
                 $soap_schema_url = $this->config['schema_url'];
@@ -503,6 +509,33 @@ EOF;
         return $el->getAttribute($attribute);
     }
 
+	/**
+	 * @return \DOMDocument
+	 * @throws \Codeception\Exception\ModuleException
+	 */
+	public function grabSoapRequest() {
+		return $this->xmlRequest;
+	}
+
+	/**
+	 * @return \DOMDocument
+	 * @throws \Codeception\Exception\ModuleException
+	 */
+	public function grabSoapResponse() {
+		return $this->xmlResponse;
+	}
+
+	/**
+	 * @throws \Codeception\Exception\ModuleException
+	 */
+	public function seeResponseIsValidOnSchema($schema) {
+		$this->assertTrue($this->response->schemaValidate($schema));
+	}
+
+	public function grabSoapResult() {
+    	return SoapClientDry::__responseValue($this->xmlResponse, $this->method, $this->wsdl, null);
+	}
+
     protected function getSchema()
     {
         return $this->config['schema'];
@@ -592,4 +625,5 @@ EOF;
         $this->processRequest($action, $body);
         return $this->client->getInternalResponse()->getContent();
     }
+
 }
