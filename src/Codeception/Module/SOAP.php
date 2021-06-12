@@ -244,6 +244,7 @@ EOF;
      * @param string|null $wsdl -- URI (full filename path is possible)
 	 * @param string $action
 	 * @param object|array|string $body
+	 * @param string $wsdl -- needed if body is an array (unless non-wsdl-mode request will be generated)
 	 *
 	 * @throws \ModuleRequireException|\SoapFault
 	 */
