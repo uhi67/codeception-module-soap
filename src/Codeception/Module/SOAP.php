@@ -47,6 +47,8 @@ use uhi67\soapHelper\SoapClientDry;
  * * schema *required* -- soap target namespace
  * * SOAPAction - replace SOAPAction HTTP header (Set to '' to SOAP 1.2)
  *
+ * If multiple endpoints are used, configuration must be updated runtime by `$I->setSoapConfig(['endpoint'=>...,...]);`
+ *
  * ## Public Properties
  *
  * * xmlRequest - last SOAP request (DOMDocument)
@@ -628,9 +630,8 @@ EOF;
 
     public function setSoapConfig($config) {
 		foreach($config as $k=>$v) {
-			$config[$k] = $v;
+			$this->config[$k] = $v;
 		}
-		$this->onReconfigure();
     }
 
 }
