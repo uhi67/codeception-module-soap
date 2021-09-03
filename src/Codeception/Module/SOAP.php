@@ -117,7 +117,7 @@ EOF;
      * @var InnerBrowser
      */
     protected $connectionModule;
-    
+
     // Parameters of last fake call
     private $wsdl;
     private $method;
@@ -220,7 +220,7 @@ EOF;
     }
 
 	/**
-     * Submits test request to endpoint 
+     * Submits test request to endpoint
 	 *
 	 * Requires of api function name and parameters.
 	 * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array
@@ -235,9 +235,9 @@ EOF;
 	 *   ->id->val(1)->parent()
 	 *   ->name->val('notdavert');
 	 * ```
-     * 
+     *
      * ### Using array parameters:
-     * 
+     *
      * - single argument is a one-element array
      * - using WSDL (URI, best is full-path filename) is recommended, otherwise non-wsdl request will be created
 	 *
@@ -250,7 +250,7 @@ EOF;
 	 */
     public function sendSoapRequest(string $action, $body = '', $wsdl=null): void
     {
-        if ($body) {
+        if ($body || is_array($body)) {
             if(is_array($body)) {
                 $xml = SoapClientDry::__requestXml($body, $action, $wsdl, null, true);
                 $this->xmlRequest = $xml;
@@ -276,9 +276,8 @@ EOF;
                 }
                 $xmlBody->appendChild($call);
             }
+	        $this->debugSection('Request', $req = $xml->C14N());
         }
-
-        $this->debugSection('Request', $req = $xml->C14N());
 
         if ($this->isFunctional && $this->config['framework_collect_buffer']) {
             $response = $this->processInternalRequest($action, $req);
@@ -625,6 +624,13 @@ EOF;
     {
         $this->processRequest($action, $body);
         return $this->client->getInternalResponse()->getContent();
+    }
+
+    public function setSoapConfig($config) {
+		foreach($config as $k=>$v) {
+			$config[$k] = $v;
+		}
+		$this->onReconfigure();
     }
 
 }
