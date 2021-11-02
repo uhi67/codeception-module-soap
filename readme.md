@@ -2,6 +2,8 @@
 
 A SOAP module for Codeception.
 
+_Version 1.1_
+
 [![Latest Stable Version](https://poser.pugx.org/uhi67/codeception-module-soap/v/stable)](https://github.com/uhi67/codeception-module-soap/releases)
 [![Total Downloads](https://poser.pugx.org/uhi67/codeception-module-soap/downloads)](https://packagist.org/packages/uhi67/codeception-module-soap)
 [![License](https://poser.pugx.org/uhi67/codeception-module-soap/license)](/LICENSE)
@@ -28,5 +30,9 @@ See [the module documentation](https://codeception.com/docs/modules/SOAP).
 
 ## Changes
 
-- sendSoapRequest now creates request from array correctly (under construction)
+### 1.1 (2021-11-02)
+
+- sendSoapRequest now creates request from array correctly
 - consolidated namespace usage
+- seeSoapResponseContainsXPath, dontSeeSoapResponseContainsXPath fixed
+- grabSoapRequest, grabSoapResponse, grabSoapResult, seeResponseIsValidOnSchema added
