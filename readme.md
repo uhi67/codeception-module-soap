@@ -15,7 +15,7 @@ _Version 1.1_
 ## Installation
 
 ```
-composer require "uhi67/module-soap" --dev
+composer require uhi67/codeception-module-soap "^1.1" --dev
 ```
 
 ## Documentation
