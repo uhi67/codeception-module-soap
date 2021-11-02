@@ -140,7 +140,7 @@ EOF;
     }
 
     public function _depends(): array
-	{
+    {
         return [InnerBrowser::class => $this->dependencyMessage];
     }
 
@@ -152,10 +152,10 @@ EOF;
         }
     }
 
-	/**
-	 * @throws ModuleRequireException
-	 */
-	private function getClient(): AbstractBrowser
+    /**
+     * @throws ModuleRequireException
+     */
+    private function getClient(): AbstractBrowser
     {
         if (!$this->client) {
             throw new ModuleRequireException($this, 'Connection client is not available.');
@@ -163,10 +163,10 @@ EOF;
         return $this->client;
     }
 
-	/**
-	 * @throws ModuleException
-	 */
-	private function getXmlResponse(): DOMDocument
+    /**
+     * @throws ModuleException
+     */
+    private function getXmlResponse(): DOMDocument
     {
         if (!$this->xmlResponse) {
             throw new ModuleException($this, "No XML response, use `\$I->sendSoapRequest` to receive it");
@@ -174,10 +174,10 @@ EOF;
         return $this->xmlResponse;
     }
 
-	/**
-	 * @throws ModuleException
-	 */
-	private function getXmlStructure(): XmlStructure
+    /**
+     * @throws ModuleException
+     */
+    private function getXmlStructure(): XmlStructure
     {
         if (!$this->xmlStructure) {
             $this->xmlStructure = new XmlStructure($this->getXmlResponse());
@@ -185,32 +185,32 @@ EOF;
         return $this->xmlStructure;
     }
 
-	/**
-	 * Prepare SOAP header.
-	 * Receives header name and parameters as array.
-	 *
-	 * Example:
-	 *
-	 * ``` php
-	 * <?php
-	 * $I->haveSoapHeader('AuthHeader', array('username' => 'davert', 'password' => '123345'));
-	 * ```
-	 *
-	 * Will produce header:
-	 *
-	 * ```
-	 *    <soapenv:Header>
-	 *      <SessionHeader>
-	 *      <AuthHeader>
-	 *          <username>davert</username>
-	 *          <password>12345</password>
-	 *      </AuthHeader>
-	 *   </soapenv:Header>
-	 * ```
-	 *
-	 * @param string $header
-	 * @param array $params
-	 */
+    /**
+     * Prepare SOAP header.
+     * Receives header name and parameters as array.
+     *
+     * Example:
+     *
+     * ``` php
+     * <?php
+     * $I->haveSoapHeader('AuthHeader', array('username' => 'davert', 'password' => '123345'));
+     * ```
+     *
+     * Will produce header:
+     *
+     * ```
+     *    <soapenv:Header>
+     *      <SessionHeader>
+     *      <AuthHeader>
+     *          <username>davert</username>
+     *          <password>12345</password>
+     *      </AuthHeader>
+     *   </soapenv:Header>
+     * ```
+     *
+     * @param string $header
+     * @param array $params
+     */
     public function haveSoapHeader(string $header, array $params = []): void
     {
         $soap_schema_url = $this->config['schema_url'];
@@ -221,35 +221,35 @@ EOF;
         $domElement->appendChild($headerEl);
     }
 
-	/**
+    /**
      * Submits test request to endpoint
-	 *
-	 * Requires of api function name and parameters.
-	 * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array
-	 *
-	 * You are allowed to execute as much requests as you need inside test.
-	 *
-	 * ### Example:
-	 *
-	 * ``` php
-	 * $I->sendSoapRequest('UpdateUser', '<user><id>1</id><name>notdavert</name></user>');
-	 * $I->sendSoapRequest('UpdateUser', \Codeception\Utils\Soap::request()->user
-	 *   ->id->val(1)->parent()
-	 *   ->name->val('notdavert');
-	 * ```
+     *
+     * Requires of api function name and parameters.
+     * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array
+     *
+     * You are allowed to execute as much requests as you need inside test.
+     *
+     * ### Example:
+     *
+     * ``` php
+     * $I->sendSoapRequest('UpdateUser', '<user><id>1</id><name>notdavert</name></user>');
+     * $I->sendSoapRequest('UpdateUser', \Codeception\Utils\Soap::request()->user
+     *   ->id->val(1)->parent()
+     *   ->name->val('notdavert');
+     * ```
      *
      * ### Using array parameters:
      *
      * - single argument is a one-element array
      * - using WSDL (URI, best is full-path filename) is recommended, otherwise non-wsdl request will be created
-	 *
+     *
      * @param string|null $wsdl -- URI (full filename path is possible)
-	 * @param string $action
-	 * @param object|array|string $body
-	 * @param string $wsdl -- needed if body is an array (unless non-wsdl-mode request will be generated)
-	 *
-	 * @throws \ModuleRequireException|\SoapFault
-	 */
+     * @param string $action
+     * @param object|array|string $body
+     * @param string $wsdl -- needed if body is an array (unless non-wsdl-mode request will be generated)
+     *
+     * @throws \ModuleRequireException|\SoapFault
+     */
     public function sendSoapRequest(string $action, $body = '', $wsdl=null): void
     {
         if ($body || is_array($body)) {
@@ -278,7 +278,7 @@ EOF;
                 }
                 $xmlBody->appendChild($call);
             }
-	        $this->debugSection('Request', $req = $xml->C14N());
+            $this->debugSection('Request', $req = $xml->C14N());
         }
 
         if ($this->isFunctional && $this->config['framework_collect_buffer']) {
@@ -292,54 +292,54 @@ EOF;
         $this->xmlStructure = null;
     }
 
-	/**
-	 * Checks XML response equals provided XML.
-	 * Comparison is done by canonicalizing both xml`s.
-	 *
-	 * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array (if no attributes).
-	 *
-	 * Example:
-	 *
-	 * ``` php
-	 * <?php
-	 * $I->seeSoapResponseEquals("<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope><SOAP-ENV:Body><result>1</result></SOAP-ENV:Envelope>");
-	 *
-	 * $dom = new \DOMDocument();
-	 * $dom->load($file);
-	 * $I->seeSoapRequestIncludes($dom);
-	 *
-	 * ```
-	 *
-	 * @param string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response equals provided XML.
+     * Comparison is done by canonicalizing both xml`s.
+     *
+     * Parameters can be passed either as DOMDocument, DOMNode, XML string, or array (if no attributes).
+     *
+     * Example:
+     *
+     * ``` php
+     * <?php
+     * $I->seeSoapResponseEquals("<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope><SOAP-ENV:Body><result>1</result></SOAP-ENV:Envelope>");
+     *
+     * $dom = new \DOMDocument();
+     * $dom->load($file);
+     * $I->seeSoapRequestIncludes($dom);
+     *
+     * ```
+     *
+     * @param string $xml
+     *
+     * @throws ModuleException
+     */
     public function seeSoapResponseEquals(string $xml): void
     {
         $xml = SoapUtils::toXml($xml);
         $this->assertEquals($xml->C14N(), $this->getXmlResponse()->C14N());
     }
 
-	/**
-	 * Checks XML response includes provided XML.
-	 * Comparison is done by canonicalizing both xml`s.
-	 * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
-	 *
-	 * Example:
-	 *
-	 * ```php
-	 * $I->seeSoapResponseIncludes("<result>1</result>");
-	 * $I->seeSoapRequestIncludes(\Codeception\Utils\Soap::response()->result->val(1));
-	 *
-	 * $dom = new \DOMDocument();
-	 * $dom->load('template.xml');
-	 * $I->seeSoapRequestIncludes($dom);
-	 * ```
-	 *
-	 * @param XmlBuilder|DOMDocument|string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response includes provided XML.
+     * Comparison is done by canonicalizing both xml`s.
+     * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
+     *
+     * Example:
+     *
+     * ```php
+     * $I->seeSoapResponseIncludes("<result>1</result>");
+     * $I->seeSoapRequestIncludes(\Codeception\Utils\Soap::response()->result->val(1));
+     *
+     * $dom = new \DOMDocument();
+     * $dom->load('template.xml');
+     * $I->seeSoapRequestIncludes($dom);
+     * ```
+     *
+     * @param XmlBuilder|DOMDocument|string $xml
+     *
+     * @throws ModuleException
+     */
     public function seeSoapResponseIncludes($xml): void
     {
         $xml = $this->canonicalize($xml);
@@ -347,16 +347,16 @@ EOF;
     }
 
 
-	/**
-	 * Checks XML response equals provided XML.
-	 * Comparison is done by canonicalizing both xml`s.
-	 *
-	 * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
-	 *
-	 * @param string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response equals provided XML.
+     * Comparison is done by canonicalizing both xml`s.
+     *
+     * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
+     *
+     * @param string $xml
+     *
+     * @throws ModuleException
+     */
     public function dontSeeSoapResponseEquals(string $xml): void
     {
         $xml = SoapUtils::toXml($xml);
@@ -364,40 +364,40 @@ EOF;
     }
 
 
-	/**
-	 * Checks XML response does not include provided XML.
-	 * Comparison is done by canonicalizing both xml`s.
-	 * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
-	 *
-	 * @param XmlBuilder|DOMDocument|string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response does not include provided XML.
+     * Comparison is done by canonicalizing both xml`s.
+     * Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, or array (if no attributes).
+     *
+     * @param XmlBuilder|DOMDocument|string $xml
+     *
+     * @throws ModuleException
+     */
     public function dontSeeSoapResponseIncludes($xml): void
     {
         $xml = $this->canonicalize($xml);
         $this->assertStringNotContainsString($xml, $this->getXmlResponse()->C14N(), "found in XML Response");
     }
 
-	/**
-	 * Checks XML response contains provided structure.
-	 * Response elements will be compared with XML provided.
-	 * Only nodeNames are checked to see elements match.
-	 *
-	 * Example:
-	 *
-	 * ```php
-	 * $I->seeSoapResponseContainsStructure("<query><name></name></query>");
-	 * ```
-	 *
-	 * Use this method to check XML of valid structure is returned.
-	 * This method does not use schema for validation.
-	 * This method does not require path from root to match the structure.
-	 *
-	 * @param string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response contains provided structure.
+     * Response elements will be compared with XML provided.
+     * Only nodeNames are checked to see elements match.
+     *
+     * Example:
+     *
+     * ```php
+     * $I->seeSoapResponseContainsStructure("<query><name></name></query>");
+     * ```
+     *
+     * Use this method to check XML of valid structure is returned.
+     * This method does not use schema for validation.
+     * This method does not require path from root to match the structure.
+     *
+     * @param string $xml
+     *
+     * @throws ModuleException
+     */
     public function seeSoapResponseContainsStructure(string $xml): void
     {
         $xml = SoapUtils::toXml($xml);
@@ -405,13 +405,13 @@ EOF;
         $this->assertTrue($this->getXmlStructure()->matchXmlStructure($xml), "this structure is in response");
     }
 
-	/**
-	 * Opposite to `seeSoapResponseContainsStructure`
-	 *
-	 * @param string $xml
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Opposite to `seeSoapResponseContainsStructure`
+     *
+     * @param string $xml
+     *
+     * @throws ModuleException
+     */
     public function dontSeeSoapResponseContainsStructure(string $xml): void
     {
         $xml = SoapUtils::toXml($xml);
@@ -419,44 +419,44 @@ EOF;
         $this->assertFalse($this->getXmlStructure()->matchXmlStructure($xml), "this structure is in response");
     }
 
-	/**
-	 * Checks XML response with XPath locator
-	 *
-	 * ```php
-	 * $I->seeSoapResponseContainsXPath('//root/user[@id=1]');
-	 * ```
-	 *
-	 * @param string $xPath
-	 * @param array $namespaces
-	 * @param string$message
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response with XPath locator
+     *
+     * ```php
+     * $I->seeSoapResponseContainsXPath('//root/user[@id=1]');
+     * ```
+     *
+     * @param string $xPath
+     * @param array $namespaces
+     * @param string$message
+     *
+     * @throws ModuleException
+     */
     public function seeSoapResponseContainsXPath(string $xPath, $namespaces=[], $message=''): void
     {
-    	$nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
-    	$this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
+        $nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
+        $this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
         $this->assertGreaterThan(0, $nodeList->length, 'Soap Response does not contain XPath query. '.$message);
     }
 
-	/**
-	 * Checks XML response doesn't contain XPath locator
-	 *
-	 * ```php
-	 * $I->dontSeeSoapResponseContainsXPath('//root/user[@id=1]');
-	 * ```
-	 *
-	 * @param string $xPath
-	 * @param array $namespaces
-	 * @param string$message
-	 *
-	 * @throws ModuleException
-	 */
+    /**
+     * Checks XML response doesn't contain XPath locator
+     *
+     * ```php
+     * $I->dontSeeSoapResponseContainsXPath('//root/user[@id=1]');
+     * ```
+     *
+     * @param string $xPath
+     * @param array $namespaces
+     * @param string$message
+     *
+     * @throws ModuleException
+     */
     public function dontSeeSoapResponseContainsXPath(string $xPath, $namespaces, $message=''): void
     {
-		$nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
-		$this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
-		$this->assertEquals(0, $nodeList->length, 'Soap Response does contain XPath query. '.$message);
+        $nodeList = XmlAsserts::xmlQuery($xPath, $this->getXmlResponse(), $namespaces);
+        $this->assertInstanceOf(\DOMNodeList::class, $nodeList, 'Invalid XPath query. '.$message);
+        $this->assertEquals(0, $nodeList->length, 'Soap Response does contain XPath query. '.$message);
     }
 
     /**
@@ -466,41 +466,41 @@ EOF;
      */
     public function seeSoapResponseCodeIs(string $code): void
     {
-		/** @noinspection PhpUndefinedMethodInspection */
-		$this->assertEquals(
+        /** @noinspection PhpUndefinedMethodInspection */
+        $this->assertEquals(
             $code,
             $this->client->getInternalResponse()->getStatus(),
             "soap response code matches expected"
         );
     }
 
-	/**
-	 * Finds and returns text contents of element.
-	 * Element is matched by either CSS or XPath
-	 *
-	 * @param string $cssOrXPath
-	 *
-	 * @return string
-	 * @throws ModuleException
-	 * @version 1.1
-	 */
+    /**
+     * Finds and returns text contents of element.
+     * Element is matched by either CSS or XPath
+     *
+     * @param string $cssOrXPath
+     *
+     * @return string
+     * @throws ModuleException
+     * @version 1.1
+     */
     public function grabTextContentFrom(string $cssOrXPath): string
     {
         $el = $this->getXmlStructure()->matchElement($cssOrXPath);
         return $el->textContent;
     }
 
-	/**
-	 * Finds and returns attribute of element.
-	 * Element is matched by either CSS or XPath
-	 *
-	 * @param string $cssOrXPath
-	 * @param string $attribute
-	 *
-	 * @return string
-	 * @throws ModuleException
-	 * @version 1.1
-	 */
+    /**
+     * Finds and returns attribute of element.
+     * Element is matched by either CSS or XPath
+     *
+     * @param string $cssOrXPath
+     * @param string $attribute
+     *
+     * @return string
+     * @throws ModuleException
+     * @version 1.1
+     */
     public function grabAttributeFrom(string $cssOrXPath, string $attribute): string
     {
         $el = $this->getXmlStructure()->matchElement($cssOrXPath);
@@ -511,32 +511,32 @@ EOF;
         return $el->getAttribute($attribute);
     }
 
-	/**
-	 * @return \DOMDocument
-	 * @throws \Codeception\Exception\ModuleException
-	 */
-	public function grabSoapRequest() {
-		return $this->xmlRequest;
-	}
+    /**
+     * @return \DOMDocument
+     * @throws \Codeception\Exception\ModuleException
+     */
+    public function grabSoapRequest() {
+        return $this->xmlRequest;
+    }
 
-	/**
-	 * @return \DOMDocument
-	 * @throws \Codeception\Exception\ModuleException
-	 */
-	public function grabSoapResponse() {
-		return $this->xmlResponse;
-	}
+    /**
+     * @return \DOMDocument
+     * @throws \Codeception\Exception\ModuleException
+     */
+    public function grabSoapResponse() {
+        return $this->xmlResponse;
+    }
 
-	/**
-	 * @throws \Codeception\Exception\ModuleException
-	 */
-	public function seeResponseIsValidOnSchema($schema) {
-		$this->assertTrue($this->response->schemaValidate($schema));
-	}
+    /**
+     * @throws \Codeception\Exception\ModuleException
+     */
+    public function seeResponseIsValidOnSchema($schema) {
+        $this->assertTrue($this->response->schemaValidate($schema));
+    }
 
-	public function grabSoapResult() {
-    	return SoapClientDry::__responseValue($this->xmlResponse, $this->method, $this->wsdl, null);
-	}
+    public function grabSoapResult() {
+        return SoapClientDry::__responseValue($this->xmlResponse, $this->method, $this->wsdl, null);
+    }
 
     protected function getSchema()
     {
@@ -559,20 +559,20 @@ EOF;
         $root = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Envelope');
         $xml->appendChild($root);
 
-		$header = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Header');
-		$root->appendChild($header);
+        $header = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Header');
+        $root->appendChild($header);
 
         $body = $xml->createElementNS($soap_schema_url, 'SOAP-ENV:Body');
-		$root->appendChild($body);
+        $root->appendChild($body);
 
         $this->xmlRequest = $xml;
         return $xml;
     }
 
-	/**
-	 * @throws ModuleRequireException
-	 */
-	protected function processRequest(string $action, string $body): void
+    /**
+     * @throws ModuleRequireException
+     */
+    protected function processRequest(string $action, string $body): void
     {
         $this->getClient()->request(
             'POST',
@@ -588,10 +588,10 @@ EOF;
         );
     }
 
-	/**
-	 * @return string|bool
-	 * @throws ModuleRequireException
-	 */
+    /**
+     * @return string|bool
+     * @throws ModuleRequireException
+     */
     protected function processInternalRequest(string $action, string $body)
     {
         ob_start();
@@ -599,8 +599,8 @@ EOF;
             $this->getClient()->setServerParameter('HTTP_HOST', 'localhost');
             $this->processRequest($action, $body);
         }
-			/** @noinspection PhpRedundantCatchClauseInspection */
-		catch (ErrorException $e) {
+            /** @noinspection PhpRedundantCatchClauseInspection */
+        catch (ErrorException $e) {
             // Zend_Soap outputs warning as an exception
             if (strpos($e->getMessage(), 'Warning: Cannot modify header information') === false) {
                 ob_end_clean();
@@ -619,19 +619,19 @@ EOF;
         return $response;
     }
 
-	/**
-	 * @throws ModuleRequireException
-	 */
-	protected function processExternalRequest(string $action, string $body): string
+    /**
+     * @throws ModuleRequireException
+     */
+    protected function processExternalRequest(string $action, string $body): string
     {
         $this->processRequest($action, $body);
         return $this->client->getInternalResponse()->getContent();
     }
 
     public function setSoapConfig($config) {
-		foreach($config as $k=>$v) {
-			$this->config[$k] = $v;
-		}
+        foreach($config as $k=>$v) {
+            $this->config[$k] = $v;
+        }
     }
 
 }

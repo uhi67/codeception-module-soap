@@ -2,7 +2,6 @@
 
 A SOAP module for Codeception.
 
-[![Actions Status](https://github.com/uhi67/codeception-module-soap/workflows/CI/badge.svg)](https://github.com/uhi67/codeception-module-soap/actions)
 [![Latest Stable Version](https://poser.pugx.org/uhi67/codeception-module-soap/v/stable)](https://github.com/uhi67/codeception-module-soap/releases)
 [![Total Downloads](https://poser.pugx.org/uhi67/codeception-module-soap/downloads)](https://packagist.org/packages/uhi67/codeception-module-soap)
 [![License](https://poser.pugx.org/uhi67/codeception-module-soap/license)](/LICENSE)
